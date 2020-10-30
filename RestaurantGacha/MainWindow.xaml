@@ -5,8 +5,23 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RestaurantGacha"
         mc:Ignorable="d"
-        Title="MainWindow" Height="500" Width="800"
-        Closing="MainWindow_OnClosing">
+        Title="恰饭地点选择器" Height="800" Width="1400"
+        Closing="MainWindow_OnClosing"
+        Icon="Images/rice.png">
+    <Window.Resources>
+        <Style TargetType="HeaderedContentControl" >
+            <Setter Property="HeaderTemplate">
+                <Setter.Value>
+                    <DataTemplate>
+                        <Label FontSize="25" Content="{Binding}" FontFamily="Microsoft Yahei"></Label>
+                    </DataTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="TextBox" x:Key="CommonSettingTb">
+            <Setter Property="Margin" Value="8"></Setter>
+        </Style>
+    </Window.Resources>
     <TabControl SelectionChanged="Selector_OnSelectionChanged">
         <TabItem Header="转盘" Width="70" Height="30" Name="Turntable">
             <Grid>
@@ -20,10 +35,10 @@
                     <ColumnDefinition></ColumnDefinition>
                     <ColumnDefinition Width="Auto"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
-                <Grid Name="GrdPie" Width="300" Height="300" Grid.Column="1" Grid.Row="1">
+                <Grid Name="GrdPie" Width="600" Height="600" Grid.Column="1" Grid.Row="1">
                 </Grid>
-                <Grid Width="200" Height="200" Grid.Column="1" Grid.Row="1">
-                    <Path x:Name="Pointer" Fill="#FFBF3232" Stretch="Fill" Data="M10,0 L0,12 L10,20 L20,12" Margin="96,5,96,100"  RenderTransformOrigin="0.5,1">
+                <Grid Width="400" Height="400" Grid.Column="1" Grid.Row="1">
+                    <Path x:Name="Pointer" Fill="#FFBF3232" Stretch="Fill" Data="M10,0 L0,12 L10,20 L20,12" Margin="192,10,192,200"  RenderTransformOrigin="0.5,1">
                         <Path.RenderTransform>
                             <TransformGroup>
                                 <RotateTransform x:Name="RotateTransform"/>
@@ -68,6 +83,15 @@
                     </StackPanel>
                 </Grid>
             </ScrollViewer>
+        </TabItem>
+        <TabItem Header="通用设置" Width="100" Height="30">
+            <StackPanel>
+                <HeaderedContentControl Header="速度设置（第一个数字为起始速度，最后一个数字为停止速度）" Margin="10">
+                    <TextBox Style="{StaticResource CommonSettingTb}">
+                        0,0,0,0
+                    </TextBox>
+                </HeaderedContentControl>
+            </StackPanel>
         </TabItem>
     </TabControl>
 </Window>

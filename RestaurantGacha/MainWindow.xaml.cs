@@ -62,7 +62,7 @@ namespace RestaurantGacha
         {
             // 令 temp 为 [-20,20]
             int temp = _random.Next(0, 41);
-            temp = 20;
+            temp -= 20;
             if (color + temp > 255 || color + temp < 0)
             {
                 color -= temp;
@@ -492,14 +492,14 @@ namespace RestaurantGacha
             //var ringParts = new List<RingPart>();
             //ringParts.Add(new RingPart(40, 20, 40, 20, Brushes.White));
 
-            Point midPoint = new Point(150, 150);
+            Point midPoint = new Point(300, 300);
             //var shapes = PieChartDrawer.GetEllipsePieChartShapes(midPoint, 100, 100, 30, sectorParts, ringParts);
-            var shapes = PieChartDrawer.GetEllipsePieChartShapes(midPoint, 100, 100, 30, sectorParts);
+            var shapes = PieChartDrawer.GetEllipsePieChartShapes(midPoint, 200, 200, 30, sectorParts);
             foreach (var shape in shapes)
             {
                 GrdPie.Children.Add(shape);
             }
-            SetEllipsePieChartLabel(midPoint, 100, 100, 30, sectorParts, _restaurants.ToList());
+            SetEllipsePieChartLabel(midPoint, 200, 200, 30, sectorParts, _restaurants.ToList());
         }
 
         void SetEllipsePieChartLabel(Point center, double radiusX, double radiusY, double offsetAngle, IEnumerable<SectorPart> sectorParts, List<Restaurant> restaurants)
@@ -520,7 +520,7 @@ namespace RestaurantGacha
                     Margin = new Thickness(firstPoint.X - 15 - restaurants[index].Name.Length * 3, firstPoint.Y - 15, 0, 0),
                     FontFamily = new FontFamily("NSimSun"),
                     FontWeight = FontWeights.Bold,
-                    FontSize = 14
+                    FontSize = 15
                 };
                 GrdPie.Children.Add(label);
 
