@@ -5,13 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RestaurantGacha"
         mc:Ignorable="d"
-        Title="恰饭地点选择器" Height="800" Width="1400"
+        Title="恰饭地点选择器" Height="1000" Width="1400"
         Closing="MainWindow_OnClosing"
         Icon="Images/rice.png">
     <Window.Resources>
         <Style TargetType="Label" x:Key="TitleLabel">
             <Setter Property="FontWeight" Value="Bold"></Setter>
-            <Setter Property="FontSize" Value="17"></Setter>
+            <Setter Property="FontSize" Value="24"></Setter>
         </Style>
         <Style TargetType="TextBox" x:Key="CommonSettingTb">
             <Setter Property="Margin" Value="8"></Setter>
@@ -22,6 +22,10 @@
             <Setter Property="Fill" Value="#CCCCCC"></Setter>
             <Setter Property="Margin" Value="0,8,0,8"></Setter>
         </Style>
+        <Style TargetType="Button">
+            <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+            <Setter Property="HorizontalAlignment" Value="Center"></Setter>
+        </Style>
         <!--<ObjectDataProvider MethodName="GetValues" ObjectType="{x:Type sys:Enum}" x:Key="WeekDataProvider">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="Fa" />
@@ -29,7 +33,7 @@
         </ObjectDataProvider>-->
     </Window.Resources>
     <TabControl SelectionChanged="Selector_OnSelectionChanged">
-        <TabItem Header="转盘" Width="70" Height="30" Name="Turntable">
+        <TabItem Header="转盘" Width="70" Height="30" Name="Turntable" FontSize="15">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"></RowDefinition>
@@ -41,10 +45,10 @@
                     <ColumnDefinition></ColumnDefinition>
                     <ColumnDefinition Width="Auto"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
-                <Grid Name="GrdPie" Width="600" Height="600" Grid.Column="1" Grid.Row="1">
+                <Grid Name="GrdPie" Width="800" Height="800" Grid.Column="1" Grid.Row="1">
                 </Grid>
-                <Grid Width="400" Height="400" Grid.Column="1" Grid.Row="1">
-                    <Path x:Name="Pointer" Fill="#FFBF3232" Stretch="Fill" Data="M10,0 L0,12 L10,20 L20,12" Margin="192,10,192,200"  RenderTransformOrigin="0.5,1">
+                <Grid Width="600" Height="600" Grid.Column="1" Grid.Row="1">
+                    <Path x:Name="Pointer" Fill="{Binding ElementName=PointerColor,Path=Text}" Stretch="Fill" Data="M10,0 L0,12 L10,20 L20,12" Margin="288,15,288,300"  RenderTransformOrigin="0.5,1">
                         <Path.RenderTransform>
                             <TransformGroup>
                                 <RotateTransform x:Name="RotateTransform"/>
@@ -61,7 +65,7 @@
                 </StackPanel>
             </Grid>
         </TabItem>
-        <TabItem Header="编辑餐厅" Width="100" Height="30">
+        <TabItem Header="编辑餐厅" Width="100" Height="30" FontSize="15">
             <ScrollViewer>
                 <Grid>
                     <Grid.RowDefinitions>
@@ -71,8 +75,8 @@
                         <RowDefinition Height="*"></RowDefinition>
                     </Grid.RowDefinitions>
                     <StackPanel Orientation="Horizontal">
-                        <Button Margin="20,10,20,10" Width="20" HorizontalAlignment="Left" Click="AddRestaurant">+</Button>
-                        <Button Margin="20,10,20,10" Width="20" HorizontalAlignment="Left" Click="RemoveItem">-</Button>
+                        <Button Margin="20,10,20,10" Width="24" Height="24" HorizontalAlignment="Left" Click="AddRestaurant" FontSize="16">+</Button>
+                        <Button Margin="20,10,20,10" Width="24" Height="24" HorizontalAlignment="Left" Click="RemoveItem" FontSize="16">-</Button>
                     </StackPanel>
                     <StackPanel Grid.Row="1" Height="10"></StackPanel>
                     <StackPanel Orientation="Horizontal" Grid.Row="2">
@@ -81,8 +85,8 @@
                                 <ColumnDefinition Width="200"></ColumnDefinition>
                                 <ColumnDefinition Width="150"></ColumnDefinition>
                             </Grid.ColumnDefinitions>
-                            <Label HorizontalAlignment="Center" Grid.Column="0" VerticalAlignment="Center">餐厅名</Label>
-                            <Label Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">权重</Label>
+                            <Label HorizontalAlignment="Center" Grid.Column="0" VerticalAlignment="Center" FontSize="18" FontWeight="Bold">餐厅名</Label>
+                            <Label Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" FontWeight="Bold">权重</Label>
                         </Grid>
                     </StackPanel>
                     <StackPanel Name="RestaurantList" Grid.Row="3" Margin="0,10,0,0">
@@ -90,7 +94,7 @@
                 </Grid>
             </ScrollViewer>
         </TabItem>
-        <TabItem Header="通用设置" Width="100" Height="30">
+        <TabItem Header="通用设置" Width="100" Height="30" Name="OtherSettings" FontSize="15">
             <Grid Margin="10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"></ColumnDefinition>
@@ -109,50 +113,51 @@
                 </Grid.RowDefinitions>
                 <Label Style="{StaticResource TitleLabel}">转盘设置</Label>
                 <StackPanel Grid.Column="1" Grid.Row="1">
-                    <StackPanel Orientation="Horizontal">
-                        <Label>起始速度:</Label>
-                        <TextBox Width="80" Height="18" Margin="5,0,0,0" Name="StartSpeed">4</TextBox>
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <Label FontSize="18">中间速度:</Label>
+                        <TextBox FontSize="18" Width="100" Height="28" Margin="5,0,0,0" Name="MiddleSpeed">4</TextBox>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Label>最高速度:</Label>
-                        <TextBox Width="80" Height="18" Margin="5,0,0,0" Name="MaxSpeed">16</TextBox>
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <Label FontSize="18">最高速度:</Label>
+                        <TextBox FontSize="18" Width="100" Height="28" Margin="5,0,0,0" Name="MaxSpeed">16</TextBox>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Label>终止速度:</Label>
-                        <TextBox Width="80" Height="18" Margin="5,0,0,0" Name="EndSpeed">4</TextBox>
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <Label FontSize="18">加速时间:</Label>
+                        <TextBox FontSize="18" Width="100" Height="28" Margin="5,0,0,0" Name="AccelerateTime">5</TextBox>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Label>加速时间:</Label>
-                        <TextBox Width="80" Height="18" Margin="5,0,0,0" Name="AccelerateTime">5</TextBox>
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <Label FontSize="18">减速时间:</Label>
+                        <TextBox FontSize="18" Width="100" Height="28" Margin="5,0,0,0" Name="DecelerateTime">5</TextBox>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Label>减速时间:</Label>
-                        <TextBox Width="80" Height="18" Margin="5,0,0,0" Name="DecelerateTime">5</TextBox>
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <Label FontSize="18">指针颜色:</Label>
+                        <TextBox FontSize="18" Width="100" Height="28" Margin="5,0,0,0" Name="PointerColor">#BF3232</TextBox>
+                        <Rectangle Width="30" Height="28" Margin="10,0,0,0" Fill="{Binding ElementName=PointerColor,Path=Text}"></Rectangle>
                     </StackPanel>
                 </StackPanel>
                 <Rectangle Style="{StaticResource Separator}" Grid.Row="2" VerticalAlignment="Bottom" Grid.Column="0" Grid.ColumnSpan="2"></Rectangle>
-                <Label Grid.Row="3" Style="{StaticResource TitleLabel}">文本设置</Label>
+                <Label Grid.Row="3" Grid.Column="0" Style="{StaticResource TitleLabel}">文本设置</Label>
                 <StackPanel Grid.Row="4" Grid.Column="1">
-                    <StackPanel Orientation="Horizontal">
-                        <Label FontWeight="Medium">是否斜体:</Label>
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <Label FontSize="18" FontWeight="Medium">是否斜体:</Label>
                         <CheckBox Margin="5,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" Name="IsItaly"></CheckBox>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Label FontWeight="Medium">是否加粗:</Label>
-                        <CheckBox Margin="5,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" Name="IsBold"></CheckBox>
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <Label FontSize="18" FontWeight="Medium">是否加粗:</Label>
+                        <CheckBox FontSize="18" Margin="5,0,0,0" HorizontalAlignment="Center" VerticalAlignment="Center" Name="IsBold"></CheckBox>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Label>文本大小:</Label>
-                        <TextBox Width="80" Height="18" Margin="5,0,0,0" Name="FontSize">14</TextBox>
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <Label FontSize="18">文本大小:</Label>
+                        <TextBox FontSize="18" Width="100" Height="28" Margin="5,0,0,0" Name="CustomFontSize">14</TextBox>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Label>文本颜色:</Label>
-                        <TextBox Width="80" Height="18" Margin="5,0,0,0" Name="FontColor">#000000</TextBox>
-                        <Rectangle Width="30" Height="18" Margin="5,0,0,0" Fill="{Binding ElementName=FontColor,Path=Text}"></Rectangle>
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <Label FontSize="18">文本颜色:</Label>
+                        <TextBox FontSize="18" Width="100" Height="28" Margin="5,0,0,0" Name="CustomFontColor">#000000</TextBox>
+                        <Rectangle Width="30" Height="28" Margin="10,0,0,0" Fill="{Binding ElementName=CustomFontColor,Path=Text}"></Rectangle>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Label>文本字体:</Label>
-                        <ComboBox Width="80" Height="18" Margin="5,0,0,0" Name="FontFamily"></ComboBox>
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <Label FontSize="18">文本字体:</Label>
+                        <ComboBox FontSize="18" Width="100" Height="28" Margin="5,0,0,0" Name="CustomFontFamily"></ComboBox>
                     </StackPanel>
                 </StackPanel>
                 <Rectangle Style="{StaticResource Separator}" Grid.Row="5" VerticalAlignment="Bottom" Grid.Column="0" Grid.ColumnSpan="2"></Rectangle>

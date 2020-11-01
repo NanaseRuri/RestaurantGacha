@@ -29,43 +29,99 @@ namespace RestaurantGacha
     /// </summary>
     public partial class MainWindow : Window
     {
-        string _loadFile = "Restaurants.config";
-        private readonly ObservableCollection<Restaurant> _restaurants = new ObservableCollection<Restaurant>() { };
+        //餐厅名单
+        string _loadFile = "Restaurants.txt";
+        private readonly ObservableCollection<Restaurant> _restaurants = new ObservableCollection<Restaurant>();
+        //转盘设置
+        TurntableSetting _turntableSetting = new TurntableSetting();
+        private string _turntableSettingFile = "TurntableSetting.config";
+        //文本设置
+        TextSetting _textSetting = new TextSetting();
+        private string _textSettingFile = "TextSetting.config";
+
+        //支持的字体
+        readonly List<FontFamilyInfo> _fontFamilyInfos = new List<FontFamilyInfo>();
+
+        //定时器，用于进行画面绘制
         readonly DispatcherTimer _timer = new DispatcherTimer();
+        //定时器间隔
         private int _timerInterval = 10;
+        //当按下停止键时，按照现有速度继续转一定时间
+        private int _randomDelay = -1;
+        //当前转角
         private double _angle = 0;
-        private double _maxInterval = 0;
-        private double _currentInterval = 0;
-        private double _bezierTime = 0.01;
-        private double _bezierStartInterval = 0;
-        private double _bezierEndInterval = 0;
+        //最大转速
+        private double _maxAngleInterval = 0;
+        //当前转速
+        private double _currentAngleInterval = 0;
+        //已进行旋转的时间
+        private double _bezierTime = 0;
+        //加速的时间间隔
+        private double _bezierAcceInterval = 0;
+        //减速的时间间隔
+        private double _bezierDeceInterval = 0;
+        //贝塞尔曲线的速度点
         readonly List<double> _bezierPoints = new List<double>();
+        //牛顿系数
         readonly List<int> _binomialCoefficient = new List<int>();
+        //停止键是否按下
         private bool _stopClick = false;
+
+        //编辑餐厅页面手绘，通过这些元素触发事件
         private Grid _lastGrid;
         private Grid _selectedGrid;
         private Grid _preGrid;
-        readonly List<Brush> _randomBrushes = new List<Brush>();
+
+        //全局的随机数生成器
         readonly Random _random = new Random((int)DateTime.Now.ToFileTimeUtc());
-        TurntableSetting _turntableSetting = new TurntableSetting();
-        private string _turntableSettingFile = "TurntableSetting.config";
-        TextSetting _textSetting = new TextSetting();
-        private string _textSettingFile = "TextSetting.config";
-        readonly Dictionary<string, FontFamily> _fontFamilies = new Dictionary<string, FontFamily>();
+        //转盘的各个餐厅的颜色
+        readonly List<Brush> _randomBrushes = new List<Brush>();
 
 
         public MainWindow()
         {
             InitializeComponent();
 
-            InitialFontFamilies();
-
             LoadAllFiles();
+            InitialSettings();
             InitialBezier();
             InitialTimer();
             InitialFront();
         }
 
+        //单纯的将变量的值赋给页面上的元素
+        void InitialSettings()
+        {
+            InitialFontFamilies();
+
+            MiddleSpeed.Text = _turntableSetting.MiddleSpeed.ToString();
+            MaxSpeed.Text = _turntableSetting.MaxSpeed.ToString();
+            AccelerateTime.Text = _turntableSetting.AccelerateTime.ToString();
+            DecelerateTime.Text = _turntableSetting.DecelerateTime.ToString();
+
+            IsItaly.IsChecked = _textSetting.IsItaly;
+            IsBold.IsChecked = _textSetting.IsBold;
+            CustomFontSize.Text = _textSetting.FontSize.ToString();
+            CustomFontColor.Text = _textSetting.FontColor;
+
+            CustomFontFamily.ItemsSource = _fontFamilyInfos;
+            CustomFontFamily.DisplayMemberPath = "FontFamilyName";
+            int index = 0;
+            foreach (var info in _fontFamilyInfos)
+            {
+                if (info.FontFamilyName == _textSetting.FontFamily)
+                {
+                    break;
+                }
+                index++;
+            }
+            if (index < _fontFamilyInfos.Count)
+            {
+                CustomFontFamily.SelectedIndex = index;
+            }
+        }
+
+        //动态地获取存在的字库
         void InitialFontFamilies()
         {
             foreach (FontFamily fontFamily in Fonts.SystemFontFamilies)
@@ -76,20 +132,29 @@ namespace RestaurantGacha
                 {
                     if (fontdics.TryGetValue(XmlLanguage.GetLanguage("zh-cn"), out string fontFamilyName))
                     {
-                        _fontFamilies.Add(fontFamilyName, fontFamily);
+                        _fontFamilyInfos.Add(new FontFamilyInfo()
+                        {
+                            FontFamily = fontFamily,
+                            FontFamilyName = fontFamilyName
+                        });
                     }
                 }
-                ////英文字体
-                //else
-                //{
-                //    if (fontdics.TryGetValue(XmlLanguage.GetLanguage("en-us"), out string fontFamilyName))
-                //    {
-                //        _fontFamilies.Add(fontFamilyName, fontFamily);
-                //    }
-                //}
+                //英文字体
+                else
+                {
+                    if (fontdics.TryGetValue(XmlLanguage.GetLanguage("en-us"), out string fontFamilyName))
+                    {
+                        _fontFamilyInfos.Add(new FontFamilyInfo()
+                        {
+                            FontFamily = fontFamily,
+                            FontFamilyName = fontFamilyName
+                        });
+                    }
+                }
             }
         }
 
+        //有文件的就进行读取
         void LoadAllFiles()
         {
             LoadRestaurant();
@@ -97,6 +162,7 @@ namespace RestaurantGacha
             LoadTextSetting();
         }
 
+        //初始化贝塞尔相关的
         void InitialBezier()
         {
             InitialBezierPoints();
@@ -105,12 +171,14 @@ namespace RestaurantGacha
             CalBezierIntervalTime();
         }
 
+        //通过加速时间和减速时间计算时间间隔
         void CalBezierIntervalTime()
         {
-            _bezierStartInterval = 0.5 * _timerInterval / 1000 / _turntableSetting.AccelerateTime;
-            _bezierEndInterval = 0.5 * _timerInterval / 1000 / _turntableSetting.DecelerateTime;
+            _bezierAcceInterval = 0.5 * _timerInterval / 1000 / _turntableSetting.AccelerateTime;
+            _bezierDeceInterval = 0.5 * _timerInterval / 1000 / _turntableSetting.DecelerateTime;
         }
 
+        //通过变量初始化编辑餐厅页面，随机初始化转盘的颜色，并绘制转盘
         void InitialFront()
         {
             InitialRestaurantList();
@@ -118,6 +186,7 @@ namespace RestaurantGacha
             DrawRestaurantToGrdPie();
         }
 
+        //获取单个随机的颜色
         void GetNextLinearColor(ref int color)
         {
             // 令 temp 为 [-20,20]
@@ -133,6 +202,7 @@ namespace RestaurantGacha
             }
         }
 
+        //返回RGB
         void GetNextLinearRgb(ref int red, ref int green, ref int blue)
         {
             GetNextLinearColor(ref red);
@@ -140,6 +210,7 @@ namespace RestaurantGacha
             GetNextLinearColor(ref blue);
         }
 
+        //获取转盘各个部分的颜色
         private void InitialRandomBrushes()
         {
             _randomBrushes.Clear();
@@ -210,19 +281,21 @@ namespace RestaurantGacha
             {
                 Text = restaurant.Name,
                 Width = 150,
-                Height = 20,
+                Height = 24,
                 TextAlignment = TextAlignment.Center,
                 VerticalContentAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(5)
+                Margin = new Thickness(5),
+                FontSize = 18
             };
             TextBox tbWeight = new TextBox()
             {
                 Text = restaurant.Weight.ToString(),
                 Width = 100,
-                Height = 20,
+                Height = 24,
                 TextAlignment = TextAlignment.Center,
                 VerticalContentAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(5)
+                Margin = new Thickness(5),
+                FontSize = 18
             };
 
             Grid grid = new Grid()
@@ -257,6 +330,8 @@ namespace RestaurantGacha
 
             RestaurantList.Children.Add(grid);
         }
+
+        //同步
         private void TbName_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (((TextBox)sender).Parent is Grid d)
@@ -265,6 +340,7 @@ namespace RestaurantGacha
             }
         }
 
+        //同步
         private void TbWeight_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (((TextBox)sender).Parent is Grid d)
@@ -382,10 +458,10 @@ namespace RestaurantGacha
         /// </summary>
         private void CalMaxInterval()
         {
-            _maxInterval = 0;
+            _maxAngleInterval = 0;
             for (int i = 0; i < _bezierPoints.Count; i++)
             {
-                _maxInterval = _maxInterval + Math.Pow(0.5, _bezierPoints.Count - i) * Math.Pow((1 - 0.5), i) * _binomialCoefficient[i] * _bezierPoints[i];
+                _maxAngleInterval = _maxAngleInterval + Math.Pow(0.5, _bezierPoints.Count - i) * Math.Pow((1 - 0.5), i) * _binomialCoefficient[i] * _bezierPoints[i];
             }
         }
 
@@ -406,7 +482,7 @@ namespace RestaurantGacha
         /// </summary>
         int GetBinomialCoefficient(int index, int power)
         {
-            if (index == 0 || index == power)
+            if (index == 0 || index == power - 1)
             {
                 return 1;
             }
@@ -433,7 +509,7 @@ namespace RestaurantGacha
         {
             double result = 0;
             //停止按钮按下时，对称过去计算
-            if (_stopClick && _bezierTime < 0.5)
+            if (_stopClick)
             {
                 for (int i = 0; i < _bezierPoints.Count; i++)
                 {
@@ -455,12 +531,13 @@ namespace RestaurantGacha
         /// </summary>
         private void InitialBezierPoints()
         {
-            if (_bezierPoints.Count == 0)
-            {
-                _bezierPoints.Add(_turntableSetting.StartSpeed);
-                _bezierPoints.Add(_turntableSetting.MaxSpeed);
-                _bezierPoints.Add(_turntableSetting.EndSpeed);
-            }
+            _bezierPoints.Clear();
+
+            _bezierPoints.Add(0);
+            _bezierPoints.Add(_turntableSetting.MiddleSpeed);
+            _bezierPoints.Add(_turntableSetting.MaxSpeed);
+            _bezierPoints.Add(_turntableSetting.MiddleSpeed);
+            _bezierPoints.Add(0);
         }
 
         private void InitialTimer()
@@ -495,29 +572,37 @@ namespace RestaurantGacha
             {
                 if (_bezierTime < 0.5)
                 {
-                    _currentInterval = GetSpeed();
-                    _angle += _currentInterval;
-                    _bezierTime += _bezierStartInterval;
+                    _currentAngleInterval = GetSpeed();
+                    _angle += _currentAngleInterval;
+                    _bezierTime += _bezierAcceInterval;
                 }
                 else
                 {
-                    _angle += _maxInterval;
+                    _angle += _maxAngleInterval;
                 }
-                if (_bezierTime >= 1)
-                {
-                    _timer.Stop();
-                    SetButtonState(true);
-                }
+                //if (_bezierTime >= 1)
+                //{
+                //    _timer.Stop();
+                //    SetButtonState(true);
+                //}
             }
             else
             {
-                _currentInterval = GetSpeed();
-                _angle += _currentInterval;
-                _bezierTime += _bezierEndInterval;
-                if (_bezierTime <= 0)
+                if (_randomDelay > -1)
                 {
-                    _timer.Stop();
-                    SetButtonState(true);
+                    _angle += _currentAngleInterval;
+                    _randomDelay--;
+                }
+                else
+                {
+                    _currentAngleInterval = GetSpeed();
+                    _angle += _currentAngleInterval;
+                    _bezierTime -= _bezierDeceInterval;
+                    if (_bezierTime <= 0)
+                    {
+                        _timer.Stop();
+                        SetButtonState(true);
+                    }
                 }
             }
             if (_angle > 360)
@@ -528,7 +613,7 @@ namespace RestaurantGacha
             RotateTransform.Angle = _angle;
         }
 
-
+        //将餐厅绘制在饼状图上
         void DrawRestaurantToGrdPie()
         {
             GrdPie.Children.Clear();
@@ -553,16 +638,17 @@ namespace RestaurantGacha
             //var ringParts = new List<RingPart>();
             //ringParts.Add(new RingPart(40, 20, 40, 20, Brushes.White));
 
-            Point midPoint = new Point(300, 300);
+            Point midPoint = new Point(400, 400);
             //var shapes = PieChartDrawer.GetEllipsePieChartShapes(midPoint, 100, 100, 30, sectorParts, ringParts);
-            var shapes = PieChartDrawer.GetEllipsePieChartShapes(midPoint, 200, 200, 30, sectorParts);
+            var shapes = PieChartDrawer.GetEllipsePieChartShapes(midPoint, 300, 300, 30, sectorParts);
             foreach (var shape in shapes)
             {
                 GrdPie.Children.Add(shape);
             }
-            SetEllipsePieChartLabel(midPoint, 200, 200, 30, sectorParts, _restaurants.ToList());
+            SetEllipsePieChartLabel(midPoint, 300, 300, 30, sectorParts, _restaurants.ToList());
         }
 
+        //添加文本
         void SetEllipsePieChartLabel(Point center, double radiusX, double radiusY, double offsetAngle, IEnumerable<SectorPart> sectorParts, List<Restaurant> restaurants)
         {
             double startAngle = offsetAngle;
@@ -578,10 +664,12 @@ namespace RestaurantGacha
                 Label label = new Label()
                 {
                     Content = restaurants[index].Name,
-                    Margin = new Thickness(firstPoint.X - 15 - restaurants[index].Name.Length * 3, firstPoint.Y - 15, 0, 0),
-                    FontFamily = new FontFamily("NSimSun"),
-                    FontWeight = FontWeights.Bold,
-                    FontSize = 15
+                    Margin = new Thickness(firstPoint.X - 22 - (double)restaurants[index].Name.Length / 4 * _textSetting.FontSize, firstPoint.Y - 22, 0, 0),
+                    FontFamily = _fontFamilyInfos.FirstOrDefault(info => info.FontFamilyName == _textSetting.FontFamily)?.FontFamily,
+                    FontWeight = _textSetting.IsBold ? FontWeights.Bold : FontWeights.Normal,
+                    FontSize = _textSetting.FontSize,
+                    FontStyle = _textSetting.IsItaly ? FontStyles.Italic : FontStyles.Normal,
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(_textSetting.FontColor))
                 };
                 GrdPie.Children.Add(label);
 
@@ -664,19 +752,8 @@ namespace RestaurantGacha
 
         private void Stop(object sender, RoutedEventArgs e)
         {
-            int randomCount = _random.Next(10, 50);
-            _timer.Stop();
-            for (int i = 0; i < randomCount; i++)
-            {
-                Thread.Sleep(_timerInterval);
-                RotateTransform.Angle += _currentInterval;
-                if (RotateTransform.Angle > 360)
-                {
-                    RotateTransform.Angle -= 360;
-                }
-            }
-            _timer.Start();
             _stopClick = true;
+            _randomDelay = _random.Next(50, 150);
         }
 
         private void Reset(object sender, RoutedEventArgs e)
@@ -699,13 +776,103 @@ namespace RestaurantGacha
 
         private void Selector_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (!OtherSettings.IsSelected)
+            {
+                SetOtherSettings();
+            }
+
             if (Turntable.IsSelected)
             {
+                Turntable.Focus();
+                InitialBezier();
                 InitialFront();
             }
             else
             {
                 _timer.Stop();
+                SetButtonState(true);
+            }
+        }
+
+        void SetOtherSettings()
+        {
+            try
+            {
+                _turntableSetting.MiddleSpeed = double.Parse(MiddleSpeed.Text);
+            }
+            catch
+            {
+                _turntableSetting.MiddleSpeed = 4;
+                MiddleSpeed.Text = 4.ToString();
+            }
+
+            try
+            {
+                _turntableSetting.MaxSpeed = double.Parse(MaxSpeed.Text);
+            }
+            catch
+            {
+                _turntableSetting.MaxSpeed = 16;
+                MaxSpeed.Text = 16.ToString();
+            }
+
+            try
+            {
+                _turntableSetting.AccelerateTime = double.Parse(AccelerateTime.Text);
+            }
+            catch
+            {
+                _turntableSetting.AccelerateTime = 5;
+                AccelerateTime.Text = 5.ToString();
+            }
+
+            try
+            {
+                _turntableSetting.DecelerateTime = double.Parse(DecelerateTime.Text);
+            }
+            catch
+            {
+                _turntableSetting.DecelerateTime = 5;
+                DecelerateTime.Text = 5.ToString();
+            }
+
+            if (ColorConverter.ConvertFromString(PointerColor.Text) != null)
+            {
+                _turntableSetting.PointerColor = PointerColor.Text;
+            }
+            else
+            {
+                _turntableSetting.PointerColor = "#BF3232";
+                PointerColor.Text = "#BF3232";
+            }
+
+            _textSetting.IsItaly = IsItaly.IsChecked.HasValue ? IsItaly.IsChecked.Value : false;
+            _textSetting.IsBold = IsBold.IsChecked.HasValue ? IsBold.IsChecked.Value : false;
+
+
+            try
+            {
+                _textSetting.FontSize = int.Parse(CustomFontSize.Text);
+            }
+            catch
+            {
+                _textSetting.FontSize = 14;
+                CustomFontSize.Text = 14.ToString();
+            }
+
+            if (ColorConverter.ConvertFromString(CustomFontColor.Text) != null)
+            {
+                _textSetting.FontColor = CustomFontColor.Text;
+            }
+            else
+            {
+                _textSetting.FontColor = "#000000";
+                CustomFontColor.Text = "#000000";
+            }
+
+            if (CustomFontFamily.SelectedIndex > -1)
+            {
+                _textSetting.FontFamily = _fontFamilyInfos[CustomFontFamily.SelectedIndex].FontFamilyName;
             }
         }
 
@@ -735,12 +902,6 @@ namespace RestaurantGacha
                     StreamReader streamReader = new StreamReader(_turntableSettingFile);
                     TurntableSetting temp = (TurntableSetting)jsonSerializer.ReadObject(streamReader.BaseStream);
                     _turntableSetting = temp;
-
-                    StartSpeed.Text = _turntableSetting.StartSpeed.ToString();
-                    MaxSpeed.Text = _turntableSetting.MaxSpeed.ToString();
-                    EndSpeed.Text = _turntableSetting.EndSpeed.ToString();
-                    AccelerateTime.Text = _turntableSetting.AccelerateTime.ToString();
-                    DecelerateTime.Text = _turntableSetting.DecelerateTime.ToString();
                 }
                 catch
                 {
@@ -769,30 +930,12 @@ namespace RestaurantGacha
         {
             if (File.Exists(_textSettingFile))
             {
-                DataContractJsonSerializer jsonSerializer = new DataContractJsonSerializer(typeof(TurntableSetting));
+                DataContractJsonSerializer jsonSerializer = new DataContractJsonSerializer(typeof(TextSetting));
                 try
                 {
                     StreamReader streamReader = new StreamReader(_textSettingFile);
                     TextSetting temp = (TextSetting)jsonSerializer.ReadObject(streamReader.BaseStream);
                     _textSetting = temp;
-
-                    IsItaly.IsChecked = _textSetting.IsItaly;
-                    IsBold.IsChecked = _textSetting.IsBold;
-                    FontSize.Text = _textSetting.FontSize.ToString();
-                    FontColor.Text = _textSetting.FontColor;
-                    int index = 0;
-                    foreach (var key in _fontFamilies.Keys)
-                    {
-                        if (key == _textSetting.FontFamily)
-                        {
-                            break;
-                        }
-                        index++;
-                    }
-                    if (index < _fontFamilies.Count)
-                    {
-                        FontFamily.SelectedIndex = index;
-                    }
                 }
                 catch
                 {

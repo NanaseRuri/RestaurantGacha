@@ -11,15 +11,15 @@ namespace RestaurantGacha
 {
     public class TurntableSetting
     {
-        public double StartSpeed { get; set; }
+        public double MiddleSpeed { get; set; } = 4;
 
-        public double MaxSpeed { get; set; }
+        public double MaxSpeed { get; set; } = 16;
 
-        public double EndSpeed { get; set; }
+        public double AccelerateTime { get; set; } = 5;
 
-        public double AccelerateTime { get; set; }
+        public double DecelerateTime { get; set; } = 5;
 
-        public double DecelerateTime { get; set; }
+        public string PointerColor { get; set; } = "#BF3232";
 
         //public bool RandomEveryTime { get; set; }
 
