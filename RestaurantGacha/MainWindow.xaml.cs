@@ -4,7 +4,9 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,11 +14,13 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+// ReSharper disable All
 
 namespace RestaurantGacha
 {
@@ -25,13 +29,17 @@ namespace RestaurantGacha
     /// </summary>
     public partial class MainWindow : Window
     {
-        string _loadFile = "Restaurants.txt";
+        string _loadFile = "Restaurants.config";
         private readonly ObservableCollection<Restaurant> _restaurants = new ObservableCollection<Restaurant>() { };
         readonly DispatcherTimer _timer = new DispatcherTimer();
+        private int _timerInterval = 10;
         private double _angle = 0;
         private double _maxInterval = 0;
+        private double _currentInterval = 0;
         private double _bezierTime = 0.01;
-        readonly List<int> _bezierPoints = new List<int>();
+        private double _bezierStartInterval = 0;
+        private double _bezierEndInterval = 0;
+        readonly List<double> _bezierPoints = new List<double>();
         readonly List<int> _binomialCoefficient = new List<int>();
         private bool _stopClick = false;
         private Grid _lastGrid;
@@ -39,20 +47,72 @@ namespace RestaurantGacha
         private Grid _preGrid;
         readonly List<Brush> _randomBrushes = new List<Brush>();
         readonly Random _random = new Random((int)DateTime.Now.ToFileTimeUtc());
+        TurntableSetting _turntableSetting = new TurntableSetting();
+        private string _turntableSettingFile = "TurntableSetting.config";
+        TextSetting _textSetting = new TextSetting();
+        private string _textSettingFile = "TextSetting.config";
+        readonly Dictionary<string, FontFamily> _fontFamilies = new Dictionary<string, FontFamily>();
+
 
         public MainWindow()
         {
             InitializeComponent();
 
+            InitialFontFamilies();
+
+            LoadAllFiles();
+            InitialBezier();
             InitialTimer();
             InitialFront();
         }
 
-        void InitialFront()
+        void InitialFontFamilies()
+        {
+            foreach (FontFamily fontFamily in Fonts.SystemFontFamilies)
+            {
+                LanguageSpecificStringDictionary fontdics = fontFamily.FamilyNames;
+                //判断该字体是不是中文字体
+                if (fontdics.ContainsKey(XmlLanguage.GetLanguage("zh-cn")))
+                {
+                    if (fontdics.TryGetValue(XmlLanguage.GetLanguage("zh-cn"), out string fontFamilyName))
+                    {
+                        _fontFamilies.Add(fontFamilyName, fontFamily);
+                    }
+                }
+                ////英文字体
+                //else
+                //{
+                //    if (fontdics.TryGetValue(XmlLanguage.GetLanguage("en-us"), out string fontFamilyName))
+                //    {
+                //        _fontFamilies.Add(fontFamilyName, fontFamily);
+                //    }
+                //}
+            }
+        }
+
+        void LoadAllFiles()
+        {
+            LoadRestaurant();
+            LoadTurntableSetting();
+            LoadTextSetting();
+        }
+
+        void InitialBezier()
         {
             InitialBezierPoints();
             InitialBezierWeights();
             CalMaxInterval();
+            CalBezierIntervalTime();
+        }
+
+        void CalBezierIntervalTime()
+        {
+            _bezierStartInterval = 0.5 * _timerInterval / 1000 / _turntableSetting.AccelerateTime;
+            _bezierEndInterval = 0.5 * _timerInterval / 1000 / _turntableSetting.DecelerateTime;
+        }
+
+        void InitialFront()
+        {
             InitialRestaurantList();
             InitialRandomBrushes();
             DrawRestaurantToGrdPie();
@@ -131,10 +191,9 @@ namespace RestaurantGacha
         /// </summary>
         private void InitialRestaurantList()
         {
-            _restaurants.Clear();
+            //_restaurants.Clear();
             RestaurantList.Children.Clear();
 
-            LoadRestaurant();
             foreach (var restaurant in _restaurants)
             {
                 PutRestaurantToFront(restaurant);
@@ -198,7 +257,6 @@ namespace RestaurantGacha
 
             RestaurantList.Children.Add(grid);
         }
-
         private void TbName_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (((TextBox)sender).Parent is Grid d)
@@ -397,17 +455,18 @@ namespace RestaurantGacha
         /// </summary>
         private void InitialBezierPoints()
         {
-            _bezierPoints.Clear();
-            _bezierPoints.Add(4);
-            _bezierPoints.Add(16);
-            _bezierPoints.Add(16);
-            _bezierPoints.Add(4);
+            if (_bezierPoints.Count == 0)
+            {
+                _bezierPoints.Add(_turntableSetting.StartSpeed);
+                _bezierPoints.Add(_turntableSetting.MaxSpeed);
+                _bezierPoints.Add(_turntableSetting.EndSpeed);
+            }
         }
 
         private void InitialTimer()
         {
             _timer.Tick += _timer_Tick;
-            _timer.Interval = TimeSpan.FromMilliseconds(10);
+            _timer.Interval = TimeSpan.FromMilliseconds(_timerInterval);
         }
 
         /// <summary>
@@ -436,8 +495,9 @@ namespace RestaurantGacha
             {
                 if (_bezierTime < 0.5)
                 {
-                    _angle += GetSpeed();
-                    _bezierTime += 0.0015;
+                    _currentInterval = GetSpeed();
+                    _angle += _currentInterval;
+                    _bezierTime += _bezierStartInterval;
                 }
                 else
                 {
@@ -451,8 +511,9 @@ namespace RestaurantGacha
             }
             else
             {
-                _angle += GetSpeed();
-                _bezierTime -= 0.001;
+                _currentInterval = GetSpeed();
+                _angle += _currentInterval;
+                _bezierTime += _bezierEndInterval;
                 if (_bezierTime <= 0)
                 {
                     _timer.Stop();
@@ -603,6 +664,18 @@ namespace RestaurantGacha
 
         private void Stop(object sender, RoutedEventArgs e)
         {
+            int randomCount = _random.Next(10, 50);
+            _timer.Stop();
+            for (int i = 0; i < randomCount; i++)
+            {
+                Thread.Sleep(_timerInterval);
+                RotateTransform.Angle += _currentInterval;
+                if (RotateTransform.Angle > 360)
+                {
+                    RotateTransform.Angle -= 360;
+                }
+            }
+            _timer.Start();
             _stopClick = true;
         }
 
@@ -620,22 +693,111 @@ namespace RestaurantGacha
         private void MainWindow_OnClosing(object sender, CancelEventArgs e)
         {
             SaveRestaurants();
+            SaveTurntableSetting();
+            SaveTextSetting();
         }
 
         private void Selector_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (Turntable.IsSelected)
             {
-                SaveRestaurants();
-
-                if (Turntable.IsSelected)
-                {
-                    InitialFront();
-                }
+                InitialFront();
             }
             else
             {
                 _timer.Stop();
+            }
+        }
+
+        private void SaveTurntableSetting()
+        {
+            DataContractJsonSerializer jsonSerializer = new DataContractJsonSerializer(typeof(TurntableSetting));
+
+            try
+            {
+                StreamWriter sw = new StreamWriter(_turntableSettingFile);
+                jsonSerializer.WriteObject(sw.BaseStream, _turntableSetting);
+            }
+            catch
+            {
+                MessageBox.Show("速度设置保存失败");
+            }
+
+        }
+
+        private void LoadTurntableSetting()
+        {
+            if (File.Exists(_turntableSettingFile))
+            {
+                DataContractJsonSerializer jsonSerializer = new DataContractJsonSerializer(typeof(TurntableSetting));
+                try
+                {
+                    StreamReader streamReader = new StreamReader(_turntableSettingFile);
+                    TurntableSetting temp = (TurntableSetting)jsonSerializer.ReadObject(streamReader.BaseStream);
+                    _turntableSetting = temp;
+
+                    StartSpeed.Text = _turntableSetting.StartSpeed.ToString();
+                    MaxSpeed.Text = _turntableSetting.MaxSpeed.ToString();
+                    EndSpeed.Text = _turntableSetting.EndSpeed.ToString();
+                    AccelerateTime.Text = _turntableSetting.AccelerateTime.ToString();
+                    DecelerateTime.Text = _turntableSetting.DecelerateTime.ToString();
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
+        }
+
+        private void SaveTextSetting()
+        {
+            DataContractJsonSerializer jsonSerializer = new DataContractJsonSerializer(typeof(TextSetting));
+
+            try
+            {
+                StreamWriter sw = new StreamWriter(_textSettingFile);
+                jsonSerializer.WriteObject(sw.BaseStream, _textSetting);
+            }
+            catch
+            {
+                MessageBox.Show("速度设置保存失败");
+            }
+
+        }
+
+        private void LoadTextSetting()
+        {
+            if (File.Exists(_textSettingFile))
+            {
+                DataContractJsonSerializer jsonSerializer = new DataContractJsonSerializer(typeof(TurntableSetting));
+                try
+                {
+                    StreamReader streamReader = new StreamReader(_textSettingFile);
+                    TextSetting temp = (TextSetting)jsonSerializer.ReadObject(streamReader.BaseStream);
+                    _textSetting = temp;
+
+                    IsItaly.IsChecked = _textSetting.IsItaly;
+                    IsBold.IsChecked = _textSetting.IsBold;
+                    FontSize.Text = _textSetting.FontSize.ToString();
+                    FontColor.Text = _textSetting.FontColor;
+                    int index = 0;
+                    foreach (var key in _fontFamilies.Keys)
+                    {
+                        if (key == _textSetting.FontFamily)
+                        {
+                            break;
+                        }
+                        index++;
+                    }
+                    if (index < _fontFamilies.Count)
+                    {
+                        FontFamily.SelectedIndex = index;
+                    }
+                }
+                catch
+                {
+                    // ignored
+                }
             }
         }
     }
