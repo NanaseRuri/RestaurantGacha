@@ -45,9 +45,9 @@
                     <ColumnDefinition></ColumnDefinition>
                     <ColumnDefinition Width="Auto"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
-                <Grid Name="GrdPie" Width="800" Height="800" Grid.Column="1" Grid.Row="1">
+                <Grid Name="GrdPie" Width="800" Height="800" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                 </Grid>
-                <Grid Width="600" Height="600" Grid.Column="1" Grid.Row="1">
+                <Grid Width="600" Height="600" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Path x:Name="Pointer" Fill="{Binding ElementName=PointerColor,Path=Text}" Stretch="Fill" Data="M10,0 L0,12 L10,20 L20,12" Margin="288,15,288,300"  RenderTransformOrigin="0.5,1">
                         <Path.RenderTransform>
                             <TransformGroup>

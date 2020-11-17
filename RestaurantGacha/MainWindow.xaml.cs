@@ -6,8 +6,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -43,7 +43,9 @@ namespace RestaurantGacha
         readonly List<FontFamilyInfo> _fontFamilyInfos = new List<FontFamilyInfo>();
 
         //定时器，用于进行画面绘制
-        readonly DispatcherTimer _timer = new DispatcherTimer();
+        //readonly DispatcherTimer _timer = new DispatcherTimer();
+        readonly Timer _timer = new Timer(10);
+
         //定时器间隔
         private int _timerInterval = 10;
         //当按下停止键时，按照现有速度继续转一定时间
@@ -542,8 +544,14 @@ namespace RestaurantGacha
 
         private void InitialTimer()
         {
-            _timer.Tick += _timer_Tick;
-            _timer.Interval = TimeSpan.FromMilliseconds(_timerInterval);
+            //_timer.Tick += _timer_Tick;
+            //_timer.Interval = TimeSpan.FromMilliseconds(_timerInterval);
+            _timer.Elapsed += _timer_Elapsed;
+        }
+
+        private void _timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            this.Dispatcher.Invoke(_timer_Tick);
         }
 
         /// <summary>
@@ -566,7 +574,8 @@ namespace RestaurantGacha
             }
         }
 
-        private void _timer_Tick(object sender, EventArgs e)
+
+        private void _timer_Tick()
         {
             if (!_stopClick)
             {
@@ -663,9 +672,10 @@ namespace RestaurantGacha
                 var firstPoint = center.GetEllipsePoint(radiusX / 2, radiusY / 2, startAngle);
                 Label label = new Label()
                 {
-                    Content = restaurants[index].Name,
+                    Content = restaurants[index].Name ?? "",
                     Margin = new Thickness(firstPoint.X - 22 - (double)restaurants[index].Name.Length / 4 * _textSetting.FontSize, firstPoint.Y - 22, 0, 0),
-                    FontFamily = _fontFamilyInfos.FirstOrDefault(info => info.FontFamilyName == _textSetting.FontFamily)?.FontFamily,
+                    FontFamily = _fontFamilyInfos.FirstOrDefault(info => info.FontFamilyName == _textSetting.FontFamily) == null ? new FontFamily() :
+                        _fontFamilyInfos.First(info => info.FontFamilyName == _textSetting.FontFamily).FontFamily,
                     FontWeight = _textSetting.IsBold ? FontWeights.Bold : FontWeights.Normal,
                     FontSize = _textSetting.FontSize,
                     FontStyle = _textSetting.IsItaly ? FontStyles.Italic : FontStyles.Normal,
