@@ -57,6 +57,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="FontFamilyInfo.cs" />
+    <Compile Include="NetworkManager.cs" />
     <Compile Include="Restaurant.cs" />
     <Compile Include="RingPart.cs" />
     <Compile Include="SectorPart.cs" />
