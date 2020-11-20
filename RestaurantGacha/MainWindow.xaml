@@ -75,8 +75,10 @@
                         <RowDefinition Height="*"></RowDefinition>
                     </Grid.RowDefinitions>
                     <StackPanel Orientation="Horizontal">
-                        <Button Margin="20,10,20,10" Width="24" Height="24" HorizontalAlignment="Left" Click="AddRestaurant" FontSize="16">+</Button>
-                        <Button Margin="20,10,20,10" Width="24" Height="24" HorizontalAlignment="Left" Click="RemoveItem" FontSize="16">-</Button>
+                        <Button Margin="20,10,20,10" Width="40" Height="40" HorizontalAlignment="Left" Click="AddRestaurant" FontSize="16">+</Button>
+                        <Button Margin="20,10,20,10" Width="40" Height="40" HorizontalAlignment="Left" Click="RemoveItem" FontSize="16">-</Button>
+                        <Button Margin="20,10,20,10" Width="120" Height="40" HorizontalAlignment="Left" Click="PullRestaurants" FontSize="16">同步餐厅列表</Button>
+                        <Button Margin="20,10,20,10" Width="140" Height="40" HorizontalAlignment="Left" Click="PushRestaurants" FontSize="16">提交更新至服务器</Button>
                     </StackPanel>
                     <StackPanel Grid.Row="1" Height="10"></StackPanel>
                     <StackPanel Orientation="Horizontal" Grid.Row="2">

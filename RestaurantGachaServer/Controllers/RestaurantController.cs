@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using RestaurantGachaServer.Models;
 
@@ -12,6 +13,7 @@ namespace RestaurantGachaServer.Controllers
     {
         private DateTime _lastUpdateDateTime = DateTime.Now;
         private const string LoadFile = "Restaurants.txt";
+        Mutex _mutex = new Mutex();
 
         public string HelloWorld()
         {
@@ -21,20 +23,23 @@ namespace RestaurantGachaServer.Controllers
         [HttpPost]
         public bool UpdateRestaurants(DateTime preUpdateDateTime, List<Restaurant> restaurants)
         {
-            if (_lastUpdateDateTime > preUpdateDateTime)
+            lock (_mutex)
             {
-                return false;
-            }
-            else
-            {
-                if (SaveRestaurants(restaurants))
+                if (_lastUpdateDateTime > preUpdateDateTime)
                 {
-                    _lastUpdateDateTime = preUpdateDateTime;
-                    return true;
+                    return false;
                 }
                 else
                 {
-                    return false;
+                    if (SaveRestaurants(restaurants))
+                    {
+                        _lastUpdateDateTime = preUpdateDateTime;
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
             }
         }
@@ -43,7 +48,7 @@ namespace RestaurantGachaServer.Controllers
         {
             if (System.IO.File.Exists(LoadFile))
             {
-                return new FileContentResult(System.IO.File.ReadAllBytes(LoadFile), "txt");
+                return new FileContentResult(System.IO.File.ReadAllBytes(LoadFile), "text/plain");
             }
             else
             {

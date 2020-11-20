@@ -5,21 +5,12 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Json;
-using System.Text;
-using System.Threading.Tasks;
 using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using System.Windows.Threading;
 // ReSharper disable All
 
 namespace RestaurantGacha
@@ -79,6 +70,7 @@ namespace RestaurantGacha
         //转盘的各个餐厅的颜色
         readonly List<Brush> _randomBrushes = new List<Brush>();
 
+        NetworkManager _networkManager = new NetworkManager();
 
         public MainWindow()
         {
@@ -952,6 +944,26 @@ namespace RestaurantGacha
                     // ignored
                 }
             }
+        }
+
+        private void PullRestaurants(object sender, RoutedEventArgs e)
+        {
+            if (_networkManager.GetRestaurants())
+            {
+                _restaurants.Clear();
+                LoadRestaurant();
+                InitialRestaurantList();
+                MessageBox.Show("更新成功");
+            }
+            else
+            {
+                MessageBox.Show("服务器连接超时或餐厅列表为空，不进行更新");
+            }
+        }
+
+        private void PushRestaurants(object sender, RoutedEventArgs e)
+        {
+            _networkManager.UpdateRestaurants(_restaurants.ToList());
         }
     }
 }
