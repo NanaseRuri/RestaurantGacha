@@ -963,7 +963,16 @@ namespace RestaurantGacha
 
         private void PushRestaurants(object sender, RoutedEventArgs e)
         {
-            _networkManager.UpdateRestaurants(_restaurants.ToList());
+            SaveRestaurants();
+
+            if (_networkManager.UpdateRestaurants(_loadFile))
+            {
+                MessageBox.Show("提交成功");
+            }
+            else
+            {
+                MessageBox.Show("提交失败");
+            }
         }
     }
 }

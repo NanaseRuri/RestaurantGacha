@@ -9,6 +9,7 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+// ReSharper disable All
 
 namespace RestaurantGacha
 {
@@ -16,11 +17,9 @@ namespace RestaurantGacha
     {
         private readonly HttpClient _client = new HttpClient();
 
-
         private readonly string _baseUri = "http://192.168.1.228:5001/Restaurant";
-        readonly DataContractJsonSerializer _restaurantSerializer = new DataContractJsonSerializer(typeof(List<Restaurant>));
+        //readonly DataContractJsonSerializer _restaurantSerializer = new DataContractJsonSerializer(typeof(List<Restaurant>));
         private readonly string _restaurantFile = "Restaurants.txt";
-
 
         public bool GetRestaurants()
         {
@@ -29,6 +28,7 @@ namespace RestaurantGacha
                 try
                 {
                     var response = _client.GetAsync(_baseUri + "/GetRestaurants", cts.Token).Result;
+
                     byte[] bytes = response.Content.ReadAsByteArrayAsync().Result;
                     if (bytes.Length > 0)
                     {
@@ -50,45 +50,32 @@ namespace RestaurantGacha
             }
         }
 
-        public bool UpdateRestaurants(List<Restaurant> restaurants)
+        public bool UpdateRestaurants(string restaurantsPath)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.Append("{");
-            sb.Append($"{{\"preUpdateDateTime\":\"{DateTime.Now}\",}},");
-
-            MemoryStream ms = new MemoryStream();
-            _restaurantSerializer.WriteObject(ms, restaurants);
-            sb.Append("{\"restaurants\":");
-            byte[] restaurantsBytes = new byte[ms.Length];
-            ms.Position = 0;
-            ms.Read(restaurantsBytes, 0, restaurantsBytes.Length);
-            string str = Encoding.UTF8.GetString(restaurantsBytes);
-            sb.Append(str);
-            sb.Append("}");
-
-            sb.Append("}");
-
-
-            //// 手动将 restaurants JSON 化
-            //sb.Append("{\"restaurants\":[");
-            //foreach (var restaurant in restaurants)
-            //{
-            //    sb.Append("{");
-            //    sb.Append($"\"Name\":\"{restaurant.Name}\"");
-            //    sb.Append($"\"Weight\":\"{restaurant.Weight}\"");
-            //    sb.Append("},");
-            //}
-            //sb.Append("]}");
-
-            HttpContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(sb.ToString()));
-
-            var response = _client.PostAsync("UpdateRestaurants", httpContent).Result;
-            byte[] bytes = response.Content.ReadAsByteArrayAsync().Result;
-            if (bytes[0] == 1)
+            string restaurants = File.ReadAllText(restaurantsPath);
+            var data = new Dictionary<string, string>
             {
-                return true;
+                ["preUpdateDateTime"] = DateTime.Now.ToString(),
+                ["restaurants"] = restaurants
+            };
+
+            var content = new FormUrlEncodedContent(data);
+            try
+            {
+                var response = _client.PostAsync(_baseUri + "/UpdateRestaurants", content).Result;
+                byte[] bytes = response.Content.ReadAsByteArrayAsync().Result;
+
+                string result = Encoding.UTF8.GetString(bytes);
+                if (result == "true")
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
-            else
+            catch
             {
                 return false;
             }

@@ -5,15 +5,15 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using RestaurantGachaServer.Models;
 
 namespace RestaurantGachaServer.Controllers
 {
     public class RestaurantController : Controller
     {
-        private DateTime _lastUpdateDateTime = DateTime.Now;
         private const string LoadFile = "Restaurants.txt";
-        Mutex _mutex = new Mutex();
+        readonly Mutex _mutex = new Mutex();
 
         public string HelloWorld()
         {
@@ -21,26 +21,36 @@ namespace RestaurantGachaServer.Controllers
         }
 
         [HttpPost]
-        public bool UpdateRestaurants(DateTime preUpdateDateTime, List<Restaurant> restaurants)
+        public bool UpdateRestaurants(DateTime preUpdateDateTime, string restaurants)
         {
-            lock (_mutex)
+            DateTime lastUpdateDateTime = System.IO.File.GetLastWriteTime(LoadFile);
+            if (Monitor.TryEnter(_mutex, 2000))
             {
-                if (_lastUpdateDateTime > preUpdateDateTime)
+                if (lastUpdateDateTime > preUpdateDateTime)
                 {
+                    Monitor.Exit(_mutex);
                     return false;
                 }
                 else
                 {
-                    if (SaveRestaurants(restaurants))
+                    try
                     {
-                        _lastUpdateDateTime = preUpdateDateTime;
+                        System.IO.File.WriteAllText(LoadFile, restaurants);
                         return true;
                     }
-                    else
+                    catch
                     {
                         return false;
                     }
+                    finally
+                    {
+                        Monitor.Exit(_mutex);
+                    }
                 }
+            }
+            else
+            {
+                return false;
             }
         }
 
@@ -53,26 +63,6 @@ namespace RestaurantGachaServer.Controllers
             else
             {
                 return null;
-            }
-        }
-
-        private bool SaveRestaurants(List<Restaurant> restaurants)
-        {
-            try
-            {
-                using (var sw = new StreamWriter(LoadFile))
-                {
-                    foreach (var restaurant in restaurants)
-                    {
-                        sw.WriteLine(restaurant.Name + ',' + restaurant.Weight);
-                    }
-                }
-
-                return true;
-            }
-            catch
-            {
-                return false;
             }
         }
     }
