@@ -26,6 +26,9 @@
             <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
             <Setter Property="HorizontalAlignment" Value="Center"></Setter>
         </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+        </Style>
         <!--<ObjectDataProvider MethodName="GetValues" ObjectType="{x:Type sys:Enum}" x:Key="WeekDataProvider">
             <ObjectDataProvider.MethodParameters>
                 <x:Type TypeName="Fa" />
@@ -163,6 +166,13 @@
                     </StackPanel>
                 </StackPanel>
                 <Rectangle Style="{StaticResource Separator}" Grid.Row="5" VerticalAlignment="Bottom" Grid.Column="0" Grid.ColumnSpan="2"></Rectangle>
+                <!--<Label Grid.Row="6" Grid.Column="0" Style="{StaticResource TitleLabel}">网络设置</Label>
+                <StackPanel Grid.Row="7" Grid.Column="1">
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <Label FontSize="18" FontWeight="Medium">服务器IP:</Label>
+                        <TextBox FontSize="18" Width="150" Height="28" Margin="5,0,0,0" Name="ServerIp" TextAlignment="Center">192.168.1.230</TextBox>
+                    </StackPanel>
+                </StackPanel>-->
             </Grid>
         </TabItem>
     </TabControl>

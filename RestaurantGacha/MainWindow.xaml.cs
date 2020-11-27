@@ -948,16 +948,17 @@ namespace RestaurantGacha
 
         private void PullRestaurants(object sender, RoutedEventArgs e)
         {
-            if (_networkManager.GetRestaurants())
+            var result = _networkManager.GetRestaurants();
+            if (result.Item1)
             {
                 _restaurants.Clear();
                 LoadRestaurant();
                 InitialRestaurantList();
-                MessageBox.Show("更新成功");
+                MessageBox.Show(result.Item2);
             }
             else
             {
-                MessageBox.Show("服务器连接超时或餐厅列表为空，不进行更新");
+                MessageBox.Show(result.Item2);
             }
         }
 
@@ -965,13 +966,14 @@ namespace RestaurantGacha
         {
             SaveRestaurants();
 
-            if (_networkManager.UpdateRestaurants(_loadFile))
+            var result = _networkManager.UpdateRestaurants(_loadFile);
+            if (result.Item1)
             {
-                MessageBox.Show("提交成功");
+                MessageBox.Show(result.Item2);
             }
             else
             {
-                MessageBox.Show("提交失败");
+                MessageBox.Show(result.Item2);
             }
         }
     }

@@ -16,7 +16,6 @@ namespace RestaurantGachaServer
         {
             //CreateHostBuilder(args).Build().Run();
             CreateWebHostBuilder(args).Build().Run();
-
         }
 
         //public static IHostBuilder CreateHostBuilder(string[] args) =>
@@ -33,7 +32,7 @@ namespace RestaurantGachaServer
                 .Build();
             return WebHost.CreateDefaultBuilder(args)
                 .UseConfiguration(config)
-                .UseUrls("http://192.168.1.228:5001")
+                .UseUrls("http://192.168.1.230:5001")
                 .UseStartup<Startup>();
         }
     }
