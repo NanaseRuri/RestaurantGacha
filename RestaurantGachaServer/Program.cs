@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore;
 
@@ -32,8 +33,15 @@ namespace RestaurantGachaServer
                 .Build();
             return WebHost.CreateDefaultBuilder(args)
                 .UseConfiguration(config)
-                .UseUrls("http://192.168.1.230:5001")
-                .UseStartup<Startup>();
+                //.UseUrls("http://192.168.1.100:5001")
+                .UseUrls("http://" + GetIp() + ":5001")
+                 .UseStartup<Startup>();
+        }
+
+        public static string GetIp()
+        {
+            return Dns.GetHostEntry(Dns.GetHostName()).
+                AddressList.FirstOrDefault(p => p.AddressFamily.ToString() == "InterNetwork")?.ToString();
         }
     }
 }
