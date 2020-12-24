@@ -39,6 +39,20 @@
     <TabControl SelectionChanged="Selector_OnSelectionChanged">
         <TabItem Header="转盘" Width="70" Height="30" Name="Turntable" FontSize="15">
             <Grid>
+                <Grid.Background>
+                    <!--<LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Offset="0" Color="#ffff0000"></GradientStop>
+                        <GradientStop Offset="0.3" Color="#DDDDDD00"></GradientStop>
+                        <GradientStop Offset="0.7" Color="#DDDDDD00"></GradientStop>
+                        <GradientStop Offset="1" Color="#ffff0000"></GradientStop>
+                    </LinearGradientBrush>-->
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <!--<GradientStop Color="#054559" Offset="0"/>-->
+                        <GradientStop Color="{Binding ElementName=LinearPen1,Path=Text}" Offset="0" x:Name="Pen1"/>
+                        <GradientStop Color="{Binding ElementName=LinearPen2,Path=Text}" Offset="0.9" x:Name="Pen2"/>
+                        <GradientStop Color="{Binding ElementName=LinearPen3,Path=Text}" Offset="1" x:Name="Pen3"/>
+                    </LinearGradientBrush>
+                </Grid.Background>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"></RowDefinition>
                     <RowDefinition></RowDefinition>
@@ -60,8 +74,20 @@
                         </Path.RenderTransform>
                     </Path>
                 </Grid>
+                <Canvas Name="SnowflakeCanvas" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="3">
+                    <local:Snowflake x:Name="Snowflake" HorizontalAlignment="Left" VerticalAlignment="Top" Width="1920" Height="1080" RenderTransformOrigin="0.5,0.5">
+                        <local:Snowflake.RenderTransform>
+                            <TransformGroup>
+                                <ScaleTransform/>
+                                <SkewTransform/>
+                                <RotateTransform Angle="0.387"/>
+                                <TranslateTransform/>
+                            </TransformGroup>
+                        </local:Snowflake.RenderTransform>
+                    </local:Snowflake>
+                </Canvas>
+                <Image Name="ChristmasTree" Grid.Row="1" Grid.Column="2" gif:ImageBehavior.AnimatedSource="ChristmasTree.gif" Width="100" Margin="0,0,70,50" VerticalAlignment="Bottom"></Image>
                 <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,70,10" VerticalAlignment="Center" Name="ControlButtonPanel">
-                    <Image Name="ChristmasTree" gif:ImageBehavior.AnimatedSource="ChristmasTree.gif" Width="100"></Image>
                     <StackPanel>
                         <Button Width="60" Height="30" Margin="10" Click="Start" Name="StartButton">开始</Button>
                         <Button Width="60" Height="30" Margin="10" Click="Stop" IsEnabled="False" Name="StopButton">停止</Button>
@@ -110,6 +136,8 @@
                     <ColumnDefinition Width="1288"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"></RowDefinition>
+                    <RowDefinition Height="auto"></RowDefinition>
                     <RowDefinition Height="auto"></RowDefinition>
                     <RowDefinition Height="auto"></RowDefinition>
                     <RowDefinition Height="auto"></RowDefinition>
@@ -177,6 +205,27 @@
                         <TextBox FontSize="18" Width="150" Height="28" Margin="5,0,0,0" Name="ServerIp" TextAlignment="Center">192.168.1.230</TextBox>
                     </StackPanel>
                 </StackPanel>-->
+
+                <Rectangle Style="{StaticResource Separator}" Grid.Row="2" VerticalAlignment="Bottom" Grid.Column="0" Grid.ColumnSpan="2"></Rectangle>
+                <Label Grid.Row="6" Grid.Column="0" Style="{StaticResource TitleLabel}">天空设置</Label>
+                <StackPanel Grid.Row="7" Grid.Column="1">
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <Label FontSize="18" FontWeight="Medium">天空颜色1:</Label>
+                        <TextBox HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" Width="100" Height="28" Margin="5,0,0,0" Name="LinearPen1">#08788C</TextBox>
+                        <Rectangle Width="30" Height="28" Margin="10,0,0,0" Fill="{Binding ElementName=LinearPen1,Path=Text}"></Rectangle>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <Label FontSize="18" FontWeight="Medium">天空颜色2:</Label>
+                        <TextBox HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" Width="100" Height="28" Margin="5,0,0,0" Name="LinearPen2">#DDDDDD</TextBox>
+                        <Rectangle Width="30" Height="28" Margin="10,0,0,0" Fill="{Binding ElementName=LinearPen2,Path=Text}"></Rectangle>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="5">
+                        <Label FontSize="18" FontWeight="Medium">天空颜色3:</Label>
+                        <TextBox HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18" Width="100" Height="28" Margin="5,0,0,0" Name="LinearPen3">#FFFFFF</TextBox>
+                        <Rectangle Width="30" Height="28" Margin="10,0,0,0" Fill="{Binding ElementName=LinearPen3,Path=Text}"></Rectangle>
+                    </StackPanel>
+                </StackPanel>
+                <Rectangle Style="{StaticResource Separator}" Grid.Row="8" VerticalAlignment="Bottom" Grid.Column="0" Grid.ColumnSpan="2"></Rectangle>
             </Grid>
         </TabItem>
     </TabControl>

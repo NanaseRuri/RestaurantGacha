@@ -60,6 +60,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="FontFamilyInfo.cs" />
+    <Compile Include="SkyColorSetting.cs" />
+    <Compile Include="Snowflake.cs" />
     <Compile Include="NetworkManager.cs" />
     <Compile Include="Restaurant.cs" />
     <Compile Include="RingPart.cs" />
@@ -78,6 +80,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Themes\Generic.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PieChartDrawer.cs" />

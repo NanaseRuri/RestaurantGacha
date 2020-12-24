@@ -30,6 +30,9 @@ namespace RestaurantGacha
         TextSetting _textSetting = new TextSetting();
         private string _textSettingFile = "TextSetting.config";
 
+        SkyColorSetting _skyColorSetting=new SkyColorSetting();
+        private string _skyColorSettingFile = "SkyColorSetting.config";
+
         //支持的字体
         readonly List<FontFamilyInfo> _fontFamilyInfos = new List<FontFamilyInfo>();
 
@@ -82,10 +85,11 @@ namespace RestaurantGacha
             InitialTimer();
             InitialFront();
 
-            if (DateTime.Now.Month != 12 || (DateTime.Now.Day != 24 && DateTime.Now.Day != 25))
-            {
-                ControlButtonPanel.Children.Remove(ChristmasTree);
-            }
+            //if (DateTime.Now.Month != 12 || (DateTime.Now.Day < 24))
+            //{
+            //    ControlButtonPanel.Children.Remove(ChristmasTree);
+            //    SnowflakeCanvas.Children.Remove(Snowflake);
+            //}
         }
 
         //单纯的将变量的值赋给页面上的元素
@@ -118,6 +122,10 @@ namespace RestaurantGacha
             {
                 CustomFontFamily.SelectedIndex = index;
             }
+
+            LinearPen1.Text = _skyColorSetting.LinearColor1;
+            LinearPen2.Text = _skyColorSetting.LinearColor2;
+            LinearPen3.Text = _skyColorSetting.LinearColor3;
         }
 
         //动态地获取存在的字库
@@ -159,6 +167,7 @@ namespace RestaurantGacha
             LoadRestaurant();
             LoadTurntableSetting();
             LoadTextSetting();
+            LoadSkyColorSetting();
         }
 
         //初始化贝塞尔相关的
@@ -780,6 +789,7 @@ namespace RestaurantGacha
             SaveRestaurants();
             SaveTurntableSetting();
             SaveTextSetting();
+            SaveSkyColorSetting();
         }
 
         private void Selector_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -844,11 +854,20 @@ namespace RestaurantGacha
                 DecelerateTime.Text = 5.ToString();
             }
 
-            if (ColorConverter.ConvertFromString(PointerColor.Text) != null)
+            try
             {
-                _turntableSetting.PointerColor = PointerColor.Text;
+
+                if (ColorConverter.ConvertFromString(PointerColor.Text) != null)
+                {
+                    _turntableSetting.PointerColor = PointerColor.Text;
+                }
+                else
+                {
+                    _turntableSetting.PointerColor = "#BF3232";
+                    PointerColor.Text = "#BF3232";
+                }
             }
-            else
+            catch 
             {
                 _turntableSetting.PointerColor = "#BF3232";
                 PointerColor.Text = "#BF3232";
@@ -868,11 +887,19 @@ namespace RestaurantGacha
                 CustomFontSize.Text = 14.ToString();
             }
 
-            if (ColorConverter.ConvertFromString(CustomFontColor.Text) != null)
+            try
             {
-                _textSetting.FontColor = CustomFontColor.Text;
+                if (ColorConverter.ConvertFromString(CustomFontColor.Text) != null)
+                {
+                    _textSetting.FontColor = CustomFontColor.Text;
+                }
+                else
+                {
+                    _textSetting.FontColor = "#000000";
+                    CustomFontColor.Text = "#000000";
+                }
             }
-            else
+            catch
             {
                 _textSetting.FontColor = "#000000";
                 CustomFontColor.Text = "#000000";
@@ -882,6 +909,61 @@ namespace RestaurantGacha
             {
                 _textSetting.FontFamily = _fontFamilyInfos[CustomFontFamily.SelectedIndex].FontFamilyName;
             }
+
+            try
+            {
+
+                if (ColorConverter.ConvertFromString(LinearPen1.Text) != null)
+                {
+                    _skyColorSetting.LinearColor1 = LinearPen1.Text;
+                }
+                else
+                {
+                    _skyColorSetting.LinearColor1 = "#08788C";
+                    LinearPen1.Text = "#08788C";
+                }
+            }
+            catch 
+            {
+                _skyColorSetting.LinearColor1 = "#08788C";
+                LinearPen1.Text = "#08788C";
+            }
+
+            try
+            {
+                if (ColorConverter.ConvertFromString(LinearPen2.Text) != null)
+                {
+                    _skyColorSetting.LinearColor2 = LinearPen2.Text;
+                }
+                else
+                {
+                    _skyColorSetting.LinearColor2 = "#DDDDDD";
+                    LinearPen2.Text= "#DDDDDD";
+                }
+            }
+            catch
+            {
+                _skyColorSetting.LinearColor2 = "#DDDDDD";
+                LinearPen2.Text = "#DDDDDD";
+            }
+            
+            try
+            {
+                if (ColorConverter.ConvertFromString(LinearPen3.Text) != null)
+                {
+                    _skyColorSetting.LinearColor3 = LinearPen3.Text;
+                }
+                else
+                {
+                    _skyColorSetting.LinearColor3 = "#FFFFFF";
+                    LinearPen3.Text = "#FFFFFF";
+                }
+            }
+            catch
+            {
+                _skyColorSetting.LinearColor3 = "#FFFFFF";
+                LinearPen3.Text = "#FFFFFF";
+            }
         }
 
         private void SaveTurntableSetting()
@@ -890,8 +972,10 @@ namespace RestaurantGacha
 
             try
             {
-                StreamWriter sw = new StreamWriter(_turntableSettingFile);
-                jsonSerializer.WriteObject(sw.BaseStream, _turntableSetting);
+                using (StreamWriter sw = new StreamWriter(_turntableSettingFile))
+                {
+                    jsonSerializer.WriteObject(sw.BaseStream, _turntableSetting);
+                }
             }
             catch
             {
@@ -923,12 +1007,14 @@ namespace RestaurantGacha
 
             try
             {
-                StreamWriter sw = new StreamWriter(_textSettingFile);
-                jsonSerializer.WriteObject(sw.BaseStream, _textSetting);
+                using (StreamWriter sw = new StreamWriter(_textSettingFile))
+                {
+                    jsonSerializer.WriteObject(sw.BaseStream, _textSetting);
+                }
             }
             catch
             {
-                MessageBox.Show("速度设置保存失败");
+                MessageBox.Show("文本设置保存失败");
             }
 
         }
@@ -943,6 +1029,42 @@ namespace RestaurantGacha
                     StreamReader streamReader = new StreamReader(_textSettingFile);
                     TextSetting temp = (TextSetting)jsonSerializer.ReadObject(streamReader.BaseStream);
                     _textSetting = temp;
+                }
+                catch
+                {
+                    // ignored
+                }
+            }
+        }
+
+        private void SaveSkyColorSetting()
+        {
+            DataContractJsonSerializer jsonSerializer = new DataContractJsonSerializer(typeof(SkyColorSetting));
+
+            try
+            {
+                using (StreamWriter sw = new StreamWriter(_skyColorSettingFile))
+                {
+                    jsonSerializer.WriteObject(sw.BaseStream, _skyColorSetting);
+                }
+            }
+            catch
+            {
+                MessageBox.Show("天空设置保存失败");
+            }
+
+        }
+
+        private void LoadSkyColorSetting()
+        {
+            if (File.Exists(_skyColorSettingFile))
+            {
+                DataContractJsonSerializer jsonSerializer = new DataContractJsonSerializer(typeof(SkyColorSetting));
+                try
+                {
+                    StreamReader streamReader = new StreamReader(_skyColorSettingFile);
+                    SkyColorSetting temp = (SkyColorSetting)jsonSerializer.ReadObject(streamReader.BaseStream);
+                    _skyColorSetting = temp;
                 }
                 catch
                 {
@@ -981,6 +1103,5 @@ namespace RestaurantGacha
                 MessageBox.Show(result.Item2);
             }
         }
-
     }
 }
