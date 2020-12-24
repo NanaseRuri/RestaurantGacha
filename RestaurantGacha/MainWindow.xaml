@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RestaurantGacha"
+        xmlns:gif="http://wpfanimatedgif.codeplex.com"
         mc:Ignorable="d"
         Title="恰饭地点选择器" Height="1000" Width="1400"
         Closing="MainWindow_OnClosing"
@@ -59,10 +60,13 @@
                         </Path.RenderTransform>
                     </Path>
                 </Grid>
-                <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,70,10" VerticalAlignment="Center">
-                    <Button Width="60" Height="30" Margin="10" Click="Start" Name="StartButton">开始</Button>
-                    <Button Width="60" Height="30" Margin="10" Click="Stop" IsEnabled="False" Name="StopButton">停止</Button>
-                    <Button Width="60" Height="30" Margin="10" Click="Reset" IsEnabled="False" Name="ResetButton">重置</Button>
+                <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,10,70,10" VerticalAlignment="Center" Name="ControlButtonPanel">
+                    <Image Name="ChristmasTree" gif:ImageBehavior.AnimatedSource="ChristmasTree.gif" Width="100"></Image>
+                    <StackPanel>
+                        <Button Width="60" Height="30" Margin="10" Click="Start" Name="StartButton">开始</Button>
+                        <Button Width="60" Height="30" Margin="10" Click="Stop" IsEnabled="False" Name="StopButton">停止</Button>
+                        <Button Width="60" Height="30" Margin="10" Click="Reset" IsEnabled="False" Name="ResetButton">重置</Button>
+                    </StackPanel>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Grid.Column="0" Grid.Row="0" Margin="10">
                 </StackPanel>

@@ -41,7 +41,8 @@ namespace RestaurantGacha
         {
             try
             {
-                var result = _client.GetAsync(_baseUri).Result;
+                CancellationTokenSource cts = new CancellationTokenSource(2000);
+                var result = _client.GetAsync(_baseUri, cts.Token).Result;
             }
             catch
             {

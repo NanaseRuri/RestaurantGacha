@@ -81,6 +81,11 @@ namespace RestaurantGacha
             InitialBezier();
             InitialTimer();
             InitialFront();
+
+            if (DateTime.Now.Month != 12 || (DateTime.Now.Day != 24 && DateTime.Now.Day != 25))
+            {
+                ControlButtonPanel.Children.Remove(ChristmasTree);
+            }
         }
 
         //单纯的将变量的值赋给页面上的元素
@@ -771,6 +776,7 @@ namespace RestaurantGacha
 
         private void MainWindow_OnClosing(object sender, CancelEventArgs e)
         {
+            _timer.Stop();
             SaveRestaurants();
             SaveTurntableSetting();
             SaveTextSetting();
@@ -891,7 +897,6 @@ namespace RestaurantGacha
             {
                 MessageBox.Show("速度设置保存失败");
             }
-
         }
 
         private void LoadTurntableSetting()
@@ -976,5 +981,6 @@ namespace RestaurantGacha
                 MessageBox.Show(result.Item2);
             }
         }
+
     }
 }
